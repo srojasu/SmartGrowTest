@@ -33,7 +33,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -41,14 +40,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    // Importa Firebase BoM (Bill of Materials) para manejar versiones automáticamente
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    dependencies {
-        // Import the BoM for the Firebase platform
-        implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
 
-        // Add the dependency for the Firebase Authentication library
-        // When using the BoM, you don't specify versions in Firebase library dependencies
-        implementation("com.google.firebase:firebase-auth")
+    // Firebase Authentication
+    implementation("com.google.firebase:firebase-auth")
 
-    }
-    }
+    // Firebase Realtime Database
+    implementation("com.google.firebase:firebase-database")
+}

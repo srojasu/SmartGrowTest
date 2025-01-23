@@ -10,9 +10,6 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -25,10 +22,6 @@ public class MainActivity extends AppCompatActivity {
     EditText email, clave;
     Button registrarse, acceder;
     FirebaseAuth mAuth;
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,15 +36,14 @@ public class MainActivity extends AppCompatActivity {
         registrarse = findViewById(R.id.signUpButton);
         acceder = findViewById(R.id.logInButton);
 
-
         registrarse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View x) {
                 String emailUser = email.getText().toString().trim();
                 String password = clave.getText().toString().trim();
 
-                if (emailUser.isEmpty() && password.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Ingresar los datos", Toast.LENGTH_SHORT).show();
+                if (emailUser.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Por favor, ingresa los datos", Toast.LENGTH_SHORT).show();
                 } else {
                     registerUser(emailUser, password);
                 }
@@ -64,8 +56,8 @@ public class MainActivity extends AppCompatActivity {
                 String emailUser = email.getText().toString().trim();
                 String password = clave.getText().toString().trim();
 
-                if (emailUser.isEmpty() && password.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Ingresar los datos", Toast.LENGTH_SHORT).show();
+                if (emailUser.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Por favor, ingresa los datos", Toast.LENGTH_SHORT).show();
                 } else {
                     loginUser(emailUser, password);
                 }
@@ -74,38 +66,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerUser(String emailUser, String password) {
-        mAuth.createUserWithEmailAndPassword(emailUser, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    finish();
-                    startActivity(new Intent(MainActivity.this, MainActivity.class));
-                    Toast.makeText(MainActivity.this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(MainActivity.this, "Error al registrar usuario", Toast.LENGTH_SHORT).show();
-            }
-        });
+        mAuth.createUserWithEmailAndPassword(emailUser, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "Registro exitoso", Toast.LENGTH_SHORT).show();
+                            redirectToPlantActivity();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Error al registrar usuario", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, "Error al registrar usuario: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void loginUser(String emailUser, String password) {
-        mAuth.signInWithEmailAndPassword(emailUser, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    finish();
-                    startActivity(new Intent(MainActivity.this, MainActivity.class));
-                    Toast.makeText(MainActivity.this, "Bienvenido", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(MainActivity.this, "Error al iniciar sesión", Toast.LENGTH_SHORT).show();
-            }
-        });
+        mAuth.signInWithEmailAndPassword(emailUser, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
+                            redirectToPlantActivity();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Error al iniciar sesión", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, "Error al iniciar sesión: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void redirectToPlantActivity() {
+        Intent intent = new Intent(MainActivity.this, PlantActivity.class);
+        startActivity(intent);
+        finish(); // Finaliza esta actividad para que no se pueda volver a ella con el botón "Atrás"
     }
 }
