@@ -8,19 +8,29 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.ejemplo.myapplication.PlantModel;
 
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlantActivity extends AppCompatActivity {
 
     private EditText plantNameEditText, plantDescriptionEditText;
     private Button savePlantButton;
+    private RecyclerView recyclerView;
+    private PlantAdapter plantAdapter;
+    private List<PlantModel> plantList;
     private DatabaseReference userPlantsRef;
     private FirebaseAuth mAuth;
 
@@ -32,10 +42,20 @@ public class PlantActivity extends AppCompatActivity {
         plantNameEditText = findViewById(R.id.plantNameEditText);
         plantDescriptionEditText = findViewById(R.id.plantDescriptionEditText);
         savePlantButton = findViewById(R.id.savePlantButton);
+        recyclerView = findViewById(R.id.recyclerView);
+
+        // Configuración del RecyclerView
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        plantList = new ArrayList<>();
+        plantAdapter = new PlantAdapter(plantList);
+        recyclerView.setAdapter(plantAdapter);
 
         mAuth = FirebaseAuth.getInstance();
         String userId = mAuth.getCurrentUser().getUid();
         userPlantsRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("plants");
+
+        // Cargar plantas guardadas
+        loadUserPlants();
 
         savePlantButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,6 +72,9 @@ public class PlantActivity extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(PlantActivity.this, "Planta guardada con éxito", Toast.LENGTH_SHORT).show();
+                                        // Limpiar los campos de texto después de guardar
+                                        plantNameEditText.setText("");
+                                        plantDescriptionEditText.setText("");
                                     } else {
                                         Toast.makeText(PlantActivity.this, "Error al guardar la planta", Toast.LENGTH_SHORT).show();
                                     }
@@ -60,6 +83,25 @@ public class PlantActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(PlantActivity.this, "Por favor, ingresa todos los datos", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+    }
+
+    private void loadUserPlants() {
+        userPlantsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                plantList.clear();
+                for (DataSnapshot plantSnapshot : snapshot.getChildren()) {
+                    PlantModel plant = plantSnapshot.getValue(PlantModel.class);
+                    plantList.add(plant);
+                }
+                plantAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(PlantActivity.this, "Error al cargar plantas", Toast.LENGTH_SHORT).show();
             }
         });
     }
